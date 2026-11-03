@@ -1,0 +1,57 @@
+.settings-content { padding-top: 2.25rem; }
+.settings-title { margin-bottom: 1.5rem; }
+.settings-title > span { color: var(--dashboard-teal); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; }
+.settings-title h1 { color: var(--dashboard-navy); font-size: 1.8rem; letter-spacing: -0.03em; margin: 0.25rem 0 0.35rem; }
+.settings-title p { color: var(--dashboard-muted); font-size: 0.9rem; }
+.settings-card { backdrop-filter: blur(20px) saturate(180%); background: var(--dashboard-glass-strong); border: 1.5px solid var(--dashboard-border); border-radius: 18px; box-shadow: var(--dashboard-shadow); max-width: 720px; padding: 1.5rem; }
+.settings-card h2 { color: var(--dashboard-navy); font-size: 1.1rem; }
+.settings-card-description { color: var(--dashboard-muted); font-size: 0.82rem; margin: 0.3rem 0 1.2rem; }
+.settings-card label { color: var(--dashboard-navy); display: block; font-size: 0.8rem; font-weight: 700; margin: 1rem 0 0.4rem; }
+.settings-card input { background: rgba(255, 255, 255, 0.76); border: 1.5px solid rgba(255, 255, 255, 0.9); border-radius: 10px; color: var(--dashboard-navy); font: inherit; outline: none; padding: 0.75rem 0.85rem; width: 100%; }
+.settings-card input:focus { border-color: var(--dashboard-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+.appearance-card { margin-bottom: 1rem; }
+.theme-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.theme-option { align-items: center; background: var(--dashboard-glass); border: 1.5px solid var(--dashboard-border); border-radius: 12px; color: var(--dashboard-navy); cursor: pointer; display: flex; font: inherit; font-size: 0.88rem; font-weight: 600; gap: 0.65rem; min-width: 155px; padding: 0.85rem 1rem; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; }
+.theme-option i { color: var(--dashboard-indigo); }
+.theme-option:hover, .theme-option.selected { background: var(--dashboard-glass-strong); border-color: var(--dashboard-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
+.settings-actions { align-items: center; display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.4rem; }
+.settings-message { color: var(--dashboard-teal); font-size: 0.8rem; }
+@media (max-width: 520px) { .settings-actions { align-items: stretch; flex-direction: column; } .settings-actions .btn-generate { justify-content: center; width: 100%; } }
+
+html[data-theme="dark"] body:has(.app-frame) { background: #0b1120; color: #e2e8f0; }
+html[data-theme="dark"] body:has(.app-frame)::before { opacity: 0.08; }
+html[data-theme="dark"] body:has(.app-frame)::after { background: rgba(2, 6, 23, 0.72); }
+html[data-theme="dark"] .app-frame {
+  --dashboard-navy: #e2e8f0;
+  --dashboard-indigo: #a5b4fc;
+  --dashboard-teal: #5eead4;
+  --dashboard-muted: #a3b1c6;
+  --dashboard-glass: rgba(15, 23, 42, 0.76);
+  --dashboard-glass-strong: rgba(30, 41, 59, 0.9);
+  --dashboard-border: rgba(148, 163, 184, 0.24);
+  --dashboard-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 2px 8px rgba(0, 0, 0, 0.16);
+  --dashboard-primary: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+  background: rgba(15, 23, 42, 0.84);
+  border-color: rgba(148, 163, 184, 0.24);
+}
+html[data-theme="dark"] .app-frame .topbar { border-bottom-color: var(--dashboard-border); }
+html[data-theme="dark"] .app-frame .sidebar { background: rgba(15, 23, 42, 0.58); border-right-color: var(--dashboard-border); }
+html[data-theme="dark"] .app-frame .sidebar-divider { background: var(--dashboard-border); }
+html[data-theme="dark"] .app-frame .conversation-history { background: rgba(15, 23, 42, 0.55); border-color: var(--dashboard-border); }
+html[data-theme="dark"] .app-frame .history-conversation:hover,
+html[data-theme="dark"] .app-frame .create-card:hover { background: rgba(51, 65, 85, 0.92); }
+html[data-theme="dark"] .app-frame .card-btn,
+html[data-theme="dark"] .app-frame .export-row select,
+html[data-theme="dark"] .app-frame .instruction-card textarea,
+html[data-theme="dark"] .settings-card input,
+html[data-theme="dark"] .visual-generator-card select,
+html[data-theme="dark"] .visual-generator-card textarea {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: var(--dashboard-border);
+  color: var(--dashboard-navy);
+}
+html[data-theme="dark"] .app-frame .instruction-card textarea:focus,
+html[data-theme="dark"] .app-frame .card-btn:hover { background: rgba(30, 41, 59, 0.96); }
+html[data-theme="dark"] .visual-card { background: rgba(15, 23, 42, 0.62); border-color: var(--dashboard-border); }
+html[data-theme="dark"] .visual-preview { background: rgba(30, 41, 59, 0.78); }
+html[data-theme="dark"] .visual-type-pill { background: rgba(129, 140, 248, 0.18); }

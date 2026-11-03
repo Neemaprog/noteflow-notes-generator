@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Notes Generator - High-Fidelity UI</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* ============================================================
+           CUSTOM STYLES
+           ============================================================ */
+
+      /* Glass morphism */
+      .glass {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .glass-dark {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        background: rgba(17, 24, 39, 0.6);
+        border: 1px solid rgba(75, 85, 99, 0.3);
+      }
+
+      /* Gradient text */
+      .gradient-text {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #14b8a6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Blob animations */
+      @keyframes blob1 {
+        0%,
+        100% {
+          transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+          transform: translate(30px, -50px) scale(1.1);
+        }
+        66% {
+          transform: translate(-20px, 20px) scale(0.9);
+        }
+      }
+      @keyframes blob2 {
+        0%,
+        100% {
+          transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+          transform: translate(-30px, 40px) scale(1.1);
+        }
+        66% {
+          transform: translate(20px, -30px) scale(0.9);
+        }
+      }
+      @keyframes blob3 {
+        0%,
+        100% {
+          transform: translate(0px, 0px) scale(1);
+        }
+        50% {
+          transform: translate(0px, -60px) scale(1.2);
+        }
+      }
+
+      .blob-1 {
+        animation: blob1 20s ease-in-out infinite;
+      }
+      .blob-2 {
+        animation: blob2 25s ease-in-out infinite;
+      }
+      .blob-3 {
+        animation: blob3 30s ease-in-out infinite;
+      }
+
+      /* Floating animation */
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .float {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      /* Pulse for skeletons */
+      @keyframes pulse-skeleton {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .skeleton {
+        animation: pulse-skeleton 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      /* Card hover effects */
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Upload area pulse */
+      @keyframes uploadPulse {
+        0%,
+        100% {
+          border-color: rgba(59, 130, 246, 0.5);
+        }
+        50% {
+          border-color: rgba(139, 92, 246, 0.8);
+        }
+      }
+      .upload-pulse {
+        animation: uploadPulse 2s ease-in-out infinite;
+      }
+
+      /* Progress bar animation */
+      @keyframes progressFill {
+        from {
+          width: 0%;
+        }
+        to {
+          width: var(--progress);
+        }
+      }
+
+      /* Tab transition */
+      .tab-content {
+        animation: fadeSlide 0.4s ease-out;
+      }
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Modal animation */
+      .modal-enter {
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #14b8a6);
+        border-radius: 9999px;
+      }
+
+      /* Dark mode toggle transition */
+      .theme-transition {
+        transition:
+          background-color 0.5s ease,
+          color 0.5s ease,
+          border-color 0.5s ease;
+      }
+
+      /* Button micro-animations */
+      .btn-press {
+        transition: all 0.15s ease;
+      }
+      .btn-press:active {
+        transform: scale(0.95);
+      }
+
+      /* Icon spin */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spin {
+        animation: spin 1s linear infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============================================================
+    APP CONTAINER
+    ============================================================ -->
+    <div id="app">
+      <!-- Will be rendered by JavaScript -->
+    </div>
+
+    <script>
+      // ============================================================
+      // COMPLETE APPLICATION - Vanilla JS
+      // ============================================================
+
+      // ============================================================
+      // STATE
+      // ============================================================
+      const state = {
+        isDark:
+          localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches),
+        activeTab: "upload",
+        isProcessing: false,
+        progress: 0,
+        uploadedFile: null,
+        showModal: false,
+        notes: null,
+        isDragging: false,
+      };
+
+      // ============================================================
+      // DOM REFS
+      // ============================================================
+      const app = document.getElementById("app");
+
+      // ============================================================
+      // ICONS (SVG)
+      // ============================================================
+      const icons = {
+        Upload: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+        FileText: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+        Mic: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+        Image: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+        Clock: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+        Sparkles: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L14 8L19 8L15 12L16 17L12 14L8 17L9 12L5 8L10 8L12 3Z"/><path d="M20 19L21 21M4 19L3 21M17 20L18 22M7 20L6 22"/></svg>`,
+        Sun: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+        Moon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+        CheckCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+        ChevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+        Download: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+        Share2: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+        TrendingUp: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+        Zap: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+        X: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+        FolderOpen: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M2 12h20"/></svg>`,
+        BarChart3: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>`,
+        PieChart: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>`,
+        Users: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+        File: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      };
+
+      function icon(name, className = "w-5 h-5") {
+        return `<span class="${className} inline-block">${icons[name] || ""}</span>`;
+      }
+
+      // ============================================================
+      // THEME TOGGLE
+      // ============================================================
+      function toggleTheme() {
+        state.isDark = !state.isDark;
+        localStorage.setItem("theme", state.isDark ? "dark" : "light");
+        render();
+      }
+
+      // ============================================================
+      // TAB SWITCH
+      // ============================================================
+      function switchTab(tab) {
+        state.activeTab = tab;
+        render();
+      }
+
+      // ============================================================
+      // FILE UPLOAD HANDLING
+      // ============================================================
+      function handleFileUpload(file) {
+        state.uploadedFile = file;
+        state.isProcessing = true;
+        state.progress = 0;
+        render();
+
+        // Simulate processing
+        const interval = setInterval(() => {
+          state.progress += Math.random() * 15;
+          if (state.progress >= 100) {
+            clearInterval(interval);
+            state.isProcessing = false;
+            state.notes = {
+              title: `${file.name.split(".")[0]} - Study Notes`,
+              summary:
+                "This document covers key concepts in machine learning including supervised learning, neural networks, and model evaluation.",
+              keyPoints: [
+                "Supervised learning uses labeled data to train models",
+                "Neural networks consist of layers of interconnected nodes",
+                "Model evaluation metrics include accuracy, precision, and recall",
+              ],
+              readingTime: "5 min read",
+            };
+            state.showModal = true;
+            render();
+          }
+          render();
+        }, 300);
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        state.isDragging = false;
+        const file = e.dataTransfer.files[0];
+        if (file) handleFileUpload(file);
+      }
+
+      function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file) handleFileUpload(file);
+      }
+
+      function closeModal() {
+        state.showModal = false;
+        render();
+      }
+
+      // ============================================================
+      // RENDER ENGINE
+      // ============================================================
+      function render() {
+        const {
+          isDark,
+          activeTab,
+          isProcessing,
+          progress,
+          uploadedFile,
+          showModal,
+          notes,
+          isDragging,
+        } = state;
+
+        const bgClass = isDark
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-blue-50 via-purple-50 to-teal-50";
+        const textClass = isDark ? "text-white" : "text-gray-900";
+        const cardBg = isDark ? "glass-dark" : "glass";
+        const borderClass = isDark ? "border-gray-700" : "border-white/20";
+
+        // Tabs
+        const tabs = [
+          { id: "upload", label: "Upload", icon: "Upload" },
+          { id: "notes", label: "Notes", icon: "FileText" },
+          { id: "visuals", label: "Visuals", icon: "Image" },
+          { id: "history", label: "History", icon: "Clock" },
+        ];
+
+        // Stats
+        const stats = [
+          {
+            icon: "File",
+            label: "Documents",
+            value: "12",
+            change: "+3",
+            color: "blue",
+          },
+          {
+            icon: "Mic",
+            label: "Audio Files",
+            value: "8",
+            change: "+2",
+            color: "purple",
+          },
+          {
+            icon: "FileText",
+            label: "Notes Generated",
+            value: "47",
+            change: "+12",
+            color: "teal",
+          },
+          {
+            icon: "TrendingUp",
+            label: "Productivity",
+            value: "89%",
+            change: "+5%",
+            color: "emerald",
+          },
+        ];
+
+        const colorMap = {
+          blue: "from-blue-500 to-blue-400 shadow-blue-500/25",
+          purple: "from-purple-500 to-purple-400 shadow-purple-500/25",
+          teal: "from-teal-500 to-teal-400 shadow-teal-500/25",
+          emerald: "from-emerald-500 to-emerald-400 shadow-emerald-500/25",
+        };
+
+        const historyItems = [
+          {
+            title: "Machine Learning Notes",
+            date: "Today, 2:30 PM",
+            type: "PDF",
+            status: "completed",
+          },
+          {
+            title: "Physics Lecture Summary",
+            date: "Today, 11:15 AM",
+            type: "Audio",
+            status: "completed",
+          },
+          {
+            title: "Chemistry Chapter 5",
+            date: "Yesterday, 4:45 PM",
+            type: "DOCX",
+            status: "processing",
+          },
+          {
+            title: "Biology Study Guide",
+            date: "Yesterday, 9:00 AM",
+            type: "PPTX",
+            status: "completed",
+          },
+        ];
+
+        const quickActions = [
+          { icon: "File", label: "Upload PDF", color: "blue" },
+          { icon: "File", label: "Upload DOCX", color: "purple" },
+          { icon: "Mic", label: "Record Audio", color: "teal" },
+          { icon: "FolderOpen", label: "Recent Files", color: "emerald" },
+        ];
+
+        const visuals = [
+          { type: "Bar Chart", icon: "BarChart3", color: "blue" },
+          { type: "Pie Chart", icon: "PieChart", color: "purple" },
+          { type: "Line Graph", icon: "TrendingUp", color: "teal" },
+          { type: "Stats", icon: "Users", color: "emerald" },
+        ];
+
+        // ============================================================
+        // BUILD HTML
+        // ============================================================
+        let html = `
+                <div class="min-h-screen ${bgClass} theme-transition relative overflow-x-hidden">
+                    
+                    <!-- ===== BLOB BACKGROUNDS ===== -->
+                    <div class="fixed inset-0 pointer-events-none z-0">
+                        <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl opacity-30 blob-1 ${isDark ? "bg-blue-600" : "bg-blue-400"}"></div>
+                        <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl opacity-30 blob-2 ${isDark ? "bg-purple-600" : "bg-purple-400"}"></div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-20 blob-3 ${isDark ? "bg-teal-600" : "bg-teal-300"}"></div>
+                    </div>
+
+                    <!-- ===== NAVBAR ===== -->
+                    <nav class="sticky top-0 z-50 theme-transition backdrop-blur-xl bg-opacity-80 border-b ${isDark ? "bg-gray-900/80 border-gray-700" : "bg-white/80 border-gray-200"}">
+                        <div class="container mx-auto px-4 py-4 max-w-7xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-teal-400 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                                    ${icon("Sparkles", "w-5 h-5 text-white")}
+                                </div>
+                                <div>
+                                    <h1 class="text-xl font-bold gradient-text">AI Notes Generator</h1>
+                                    <p class="text-xs ${isDark ? "text-gray-400" : "text-gray-500"}">Smart Learning Assistant</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="toggleTheme()" class="btn-press p-2 rounded-xl theme-transition ${isDark ? "bg-gray-800 text-yellow-400 hover:bg-gray-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}">
+                                    ${icon(isDark ? "Sun" : "Moon", "w-5 h-5")}
+                                </button>
+                                <button class="btn-press px-4 py-2 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                                    Get Started
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div class="container mx-auto px-4 py-8 max-w-7xl relative z-10">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            
+                            <!-- ===== SIDEBAR ===== -->
+                            <div class="lg:col-span-3">
+                                <div class="sticky top-24 rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-4 shadow-xl">
+                                    <div class="space-y-2">
+                                        ${tabs
+                                          .map((tab) => {
+                                            const isActive =
+                                              activeTab === tab.id;
+                                            return `
+                                                <button onclick="switchTab('${tab.id}')" 
+                                                    class="btn-press w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                                                      isActive
+                                                        ? "bg-gradient-to-r from-blue-500 via-purple-500 to-teal-400 text-white shadow-lg shadow-blue-500/25"
+                                                        : isDark
+                                                          ? "text-gray-300 hover:bg-gray-700/50"
+                                                          : "text-gray-600 hover:bg-gray-100/50"
+                                                    }">
+                                                    ${icon(tab.icon, "w-5 h-5")}
+                                                    <span class="font-medium text-sm">${tab.label}</span>
+                                                    ${isActive ? '<span class="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>' : ""}
+                                                </button>
+                                            `;
+                                          })
+                                          .join("")}
+                                    </div>
+                                    <div class="mt-6 pt-6 border-t ${isDark ? "border-gray-700" : "border-gray-200"}">
+                                        <div class="text-xs ${isDark ? "text-gray-500" : "text-gray-400"}">
+                                            <div class="flex items-center justify-between">
+                                                <span>Storage</span>
+                                                <span>2.4 GB / 5 GB</span>
+                                            </div>
+                                            <div class="mt-2 w-full h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-teal-400" style="width:48%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== MAIN CONTENT ===== -->
+                            <div class="lg:col-span-9">
+            `;
+
+        // ===== UPLOAD TAB =====
+        if (activeTab === "upload") {
+          html += `
+                    <div class="tab-content">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            ${stats
+                              .map(
+                                (stat, i) => `
+                                <div class="card-hover rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-5 shadow-xl">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <p class="text-sm ${isDark ? "text-gray-400" : "text-gray-500"}">${stat.label}</p>
+                                            <p class="text-2xl font-bold mt-1 ${textClass}">${stat.value}</p>
+                                            <p class="text-xs mt-1 ${stat.change.startsWith("+") ? "text-green-500" : "text-red-500"}">${stat.change} from last week</p>
+                                        </div>
+                                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[stat.color]} flex items-center justify-center">
+                                            ${icon(stat.icon, "w-5 h-5 text-white")}
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+
+                        <!-- Upload Area -->
+                        <div 
+                            class="relative rounded-2xl backdrop-blur-xl border-2 border-dashed transition-all duration-500 ${
+                              isDragging
+                                ? "border-blue-500 bg-blue-500/10 scale-[1.02]"
+                                : uploadedFile
+                                  ? "border-green-500 bg-green-500/10"
+                                  : isDark
+                                    ? "border-gray-700 bg-gray-800/30"
+                                    : "border-gray-300 bg-white/30 upload-pulse"
+                            } p-12 shadow-xl overflow-hidden"
+                            ondragenter="event.preventDefault(); state.isDragging=true; render();"
+                            ondragleave="event.preventDefault(); state.isDragging=false; render();"
+                            ondragover="event.preventDefault();"
+                            ondrop="handleDrop(event)"
+                        >
+                            ${
+                              uploadedFile
+                                ? `
+                                <div class="relative z-10 text-center">
+                                    <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-green-500/25">
+                                        ${icon("CheckCircle", "w-10 h-10 text-white")}
+                                    </div>
+                                    <h3 class="mt-4 text-lg font-semibold ${textClass}">${uploadedFile.name}</h3>
+                                    <p class="text-sm ${isDark ? "text-gray-400" : "text-gray-500"}">${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    ${
+                                      isProcessing
+                                        ? `
+                                        <div class="mt-6 max-w-md mx-auto">
+                                            <div class="flex justify-between text-sm mb-2">
+                                                <span class="${isDark ? "text-gray-300" : "text-gray-600"}">Processing...</span>
+                                                <span class="${isDark ? "text-gray-300" : "text-gray-600"}">${Math.round(progress)}%</span>
+                                            </div>
+                                            <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-teal-400 transition-all duration-300" style="width:${progress}%"></div>
+                                            </div>
+                                        </div>
+                                    `
+                                        : ""
+                                    }
+                                </div>
+                            `
+                                : `
+                                <div class="relative z-10 text-center">
+                                    <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-teal-400 flex items-center justify-center shadow-lg shadow-blue-500/25 transition-transform duration-300 ${isDragging ? "scale-110 rotate-3" : ""}">
+                                        ${icon("Upload", "w-12 h-12 text-white")}
+                                    </div>
+                                    <h3 class="mt-4 text-xl font-semibold ${textClass}">${isDragging ? "Drop your file here" : "Upload your file"}</h3>
+                                    <p class="mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}">Drag & drop or click to browse</p>
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        ${["PDF", "DOCX", "PPTX", "MP3", "WAV"]
+                                          .map(
+                                            (type) => `
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}">${type}</span>
+                                        `,
+                                          )
+                                          .join("")}
+                                    </div>
+                                    <input type="file" onchange="handleFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.docx,.pptx,.mp3,.wav" />
+                                </div>
+                            `
+                            }
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                            ${quickActions
+                              .map(
+                                (action, i) => `
+                                <button class="card-hover rounded-xl backdrop-blur-xl border ${cardBg} ${borderClass} p-4 text-center shadow-xl">
+                                    <div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br ${colorMap[action.color]} flex items-center justify-center">
+                                        ${icon(action.icon, "w-5 h-5 text-white")}
+                                    </div>
+                                    <p class="text-sm font-medium mt-2 ${isDark ? "text-gray-300" : "text-gray-700"}">${action.label}</p>
+                                </button>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+                `;
+        }
+
+        // ===== NOTES TAB =====
+        if (activeTab === "notes") {
+          if (notes) {
+            html += `
+                        <div class="tab-content rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-6 shadow-xl">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h2 class="text-2xl font-bold ${textClass}">${notes.title}</h2>
+                                    <div class="flex items-center space-x-4 mt-2">
+                                        <span class="text-sm ${isDark ? "text-gray-400" : "text-gray-500"}">
+                                            ${icon("Clock", "inline w-4 h-4 mr-1")}
+                                            ${notes.readingTime}
+                                        </span>
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${isDark ? "bg-blue-900/50 text-blue-300" : "bg-blue-100 text-blue-600"}">AI Generated</span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="btn-press px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-400 text-white text-sm font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all duration-300 flex items-center space-x-2">
+                                        ${icon("Download", "w-4 h-4")}
+                                        <span>Export</span>
+                                    </button>
+                                    <button class="btn-press px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-400 text-white text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-xl transition-all duration-300 flex items-center space-x-2">
+                                        ${icon("Share2", "w-4 h-4")}
+                                        <span>Share</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-6">
+                                <p class="text-base leading-relaxed ${textClass}">${notes.summary}</p>
+                                <h3 class="text-lg font-semibold mt-6 ${textClass}">Key Points</h3>
+                                <ul class="space-y-2">
+                                    ${notes.keyPoints
+                                      .map(
+                                        (point) => `
+                                        <li class="flex items-start space-x-3 ${textClass}">
+                                            ${icon("CheckCircle", "w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5")}
+                                            <span>${point}</span>
+                                        </li>
+                                    `,
+                                      )
+                                      .join("")}
+                                </ul>
+                            </div>
+                            <!-- Skeleton Loader -->
+                            <div class="mt-8 space-y-3">
+                                <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700 skeleton"></div>
+                                <div class="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700 skeleton"></div>
+                                <div class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700 skeleton"></div>
+                            </div>
+                        </div>
+                    `;
+          } else {
+            html += `
+                        <div class="tab-content rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-12 text-center shadow-xl">
+                            <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
+                                ${icon("FileText", "w-10 h-10 text-white")}
+                            </div>
+                            <h3 class="mt-4 text-xl font-semibold ${textClass}">No Notes Yet</h3>
+                            <p class="mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}">Upload a document to generate study notes</p>
+                            <button onclick="switchTab('upload')" class="btn-press mt-4 px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                                Upload Document
+                            </button>
+                        </div>
+                    `;
+          }
+        }
+
+        // ===== VISUALS TAB =====
+        if (activeTab === "visuals") {
+          html += `
+                    <div class="tab-content grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${visuals
+                          .map(
+                            (visual, i) => `
+                            <div class="card-hover rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-6 shadow-xl cursor-pointer">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[visual.color]} flex items-center justify-center">
+                                    ${icon(visual.icon, "w-6 h-6 text-white")}
+                                </div>
+                                <h3 class="mt-4 font-semibold ${textClass}">${visual.type}</h3>
+                                <p class="text-sm ${isDark ? "text-gray-400" : "text-gray-500"}">Generated from your document</p>
+                                <div class="mt-4 h-20 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 skeleton"></div>
+                            </div>
+                        `,
+                          )
+                          .join("")}
+                    </div>
+                `;
+        }
+
+        // ===== HISTORY TAB =====
+        if (activeTab === "history") {
+          html += `
+                    <div class="tab-content rounded-2xl backdrop-blur-xl border ${cardBg} ${borderClass} p-6 shadow-xl">
+                        <h2 class="text-xl font-bold ${textClass} mb-4">Recent Activity</h2>
+                        <div class="space-y-3">
+                            ${historyItems
+                              .map(
+                                (item, i) => `
+                                <div class="flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${isDark ? "hover:bg-gray-700/50" : "hover:bg-gray-100/50"} card-hover">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-10 h-10 rounded-xl ${item.status === "completed" ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"} flex items-center justify-center text-lg font-bold">
+                                            ${item.status === "completed" ? "✓" : "⟳"}
+                                        </div>
+                                        <div>
+                                            <p class="font-medium ${textClass}">${item.title}</p>
+                                            <p class="text-sm ${isDark ? "text-gray-400" : "text-gray-500"}">${item.date} • ${item.type}</p>
+                                        </div>
+                                    </div>
+                                    ${icon("ChevronRight", "w-5 h-5 text-gray-400")}
+                                </div>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+                `;
+        }
+
+        html += `
+                            </div>
+                        </div>
+                    </div>
+            `;
+
+        // ===== SUCCESS MODAL =====
+        if (showModal && notes) {
+          html += `
+                    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
+                        <div class="modal-enter relative rounded-2xl backdrop-blur-xl border ${isDark ? "bg-gray-800/90 border-gray-700" : "bg-white/90 border-white/50"} p-8 max-w-md w-full shadow-2xl">
+                            <button onclick="closeModal()" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                ${icon("X", "w-5 h-5")}
+                            </button>
+                            <div class="text-center">
+                                <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-green-500/25">
+                                    ${icon("CheckCircle", "w-10 h-10 text-white")}
+                                </div>
+                                <h2 class="text-2xl font-bold mt-4 ${textClass}">Notes Generated!</h2>
+                                <p class="mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}">Your study notes are ready. You can view, export, or share them.</p>
+                                <div class="mt-4 p-4 rounded-xl ${isDark ? "bg-gray-700/50" : "bg-gray-100/50"} text-left">
+                                    <p class="text-sm font-medium ${textClass}">${notes.title}</p>
+                                    <p class="text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}">${notes.readingTime} • ${notes.keyPoints.length} key points</p>
+                                </div>
+                                <div class="flex space-x-3 mt-6">
+                                    <button onclick="closeModal(); switchTab('notes');" class="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                                        View Notes
+                                    </button>
+                                    <button onclick="closeModal()" class="flex-1 px-4 py-2 rounded-xl border ${isDark ? "border-gray-600" : "border-gray-300"} font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 ${textClass}">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // ===== FLOATING ACTION BUTTON =====
+        html += `
+                <div class="fixed bottom-8 right-8 z-40">
+                    <button class="btn-press w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-teal-400 flex items-center justify-center shadow-2xl shadow-blue-500/25 text-white hover:scale-110 transition-transform duration-300">
+                        ${icon("Zap", "w-7 h-7")}
+                    </button>
+                </div>
+            `;
+
+        html += `
+                </div>
+            `;
+
+        app.innerHTML = html;
+      }
+
+      // ============================================================
+      // INITIAL RENDER
+      // ============================================================
+      render();
+
+      console.log("✅ AI Notes Generator UI - High-Fidelity Design");
+      console.log(
+        "📌 Features: Glass morphism, Blob backgrounds, Animations, Dark/Light mode",
+      );
+    </script>
+  </body>
+</html>
